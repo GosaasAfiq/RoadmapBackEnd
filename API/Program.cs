@@ -7,15 +7,21 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration) // Reads settings from appsettings.json
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json")
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true)
+        .Build())
     .Enrich.FromLogContext()
-    .WriteTo.Console() // Logs to the console
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day) // Logs to files daily
+    .WriteTo.Console()
+    .WriteTo.File("Logs/complete.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("Logs/errors.log", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error)  // Error logs
     .CreateLogger();
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Use Serilog as the logging provider
 builder.Host.UseSerilog();
@@ -24,18 +30,7 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices(builder.Configuration);
 
-// Add Authentication and configure Google OAuth
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultScheme = "Cookies"; // Use cookies for session management
-//    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme; // Use Google OAuth for login
-//})
-//.AddCookie("Cookies") // Add cookie-based authentication
-//.AddGoogle(options =>
-//{
-//    options.ClientId = builder.Configuration["GoogleOAuth:ClientId"]; // Google Client ID from appsettings
-//    options.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"]; // Google Client Secret from appsettings
-//});
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -74,19 +69,9 @@ app.MapControllers();
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 
-try
-{
+
     var context = services.GetRequiredService<DataContext>();
     context.Database.Migrate();
-    Log.Information("Database migration completed successfully");
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "An error occurred during migration");
-}
-finally
-{
-    Log.CloseAndFlush(); // Ensure all logs are flushed on application shutdown
-}
+
 
 app.Run();
