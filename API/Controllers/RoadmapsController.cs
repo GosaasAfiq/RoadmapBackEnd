@@ -1,14 +1,13 @@
 using Application.Roadmaps;
 using Domain;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
     public class RoadmapsController : BaseApiController<RoadmapsController>
     {
-
         public RoadmapsController(ILogger<RoadmapsController> logger) : base(logger)
         {
         }
@@ -20,9 +19,20 @@ namespace API.Controllers
 
             try
             {
-                var roadmaps = await Mediator.Send(new List.Query());
-                _logger.LogInformation("Successfully retrieved {Count} roadmaps", roadmaps.Count);
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Assuming the claim is stored as NameIdentifier
 
+                // Convert the userId to Guid
+                if (!Guid.TryParse(userIdString, out Guid userId))
+                {
+                    _logger.LogWarning("Invalid UserId claim: {UserId}", userIdString);
+                    return Unauthorized("Invalid UserId claim.");
+                }
+
+                // Pass the Guid UserId to the MediatR request
+                var roadmaps = await Mediator.Send(new List.Query { UserId = userId });
+
+
+                _logger.LogInformation("Successfully retrieved {Count} roadmaps", roadmaps.Count);
                 return Ok(roadmaps);
             }
             catch (Exception ex)
@@ -39,6 +49,7 @@ namespace API.Controllers
 
             try
             {
+                // Only pass the roadmap ID (not userId) to the Details.Query
                 var roadmap = await Mediator.Send(new Details.Query { Id = id });
 
                 if (roadmap == null)

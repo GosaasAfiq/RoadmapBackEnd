@@ -8,7 +8,10 @@ namespace Application.Roadmaps
 {
     public class List
     {
-        public class Query : IRequest<List<Roadmap>> { }
+        public class Query : IRequest<List<Roadmap>> 
+        {
+            public Guid UserId { get; set; }
+        }
 
         public class Handler : IRequestHandler<Query, List<Roadmap>>
         {
@@ -25,7 +28,9 @@ namespace Application.Roadmaps
             {
                 _logger.LogInformation("Fetching all roadmaps.");
 
-                var roadmaps = await _context.Roadmap.ToListAsync(cancellationToken);
+                var roadmaps = await _context.Roadmap
+                    .Where(r => r.UserId == request.UserId) // Example: filter based on userId
+                    .ToListAsync(cancellationToken);
 
                 if (roadmaps.Count == 0)
                 {
