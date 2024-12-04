@@ -16,8 +16,9 @@ Log.Logger = new LoggerConfiguration()
         .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true)
         .Build())
     .Enrich.FromLogContext()
+    .Enrich.WithProperty("TraceId", Guid.NewGuid().ToString()) // Fallback for logs outside the request pipeline
     .WriteTo.Console()
-    .WriteTo.File("Logs/complete.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("Logs/complete.log", rollingInterval: RollingInterval.Day, shared: true)
     .WriteTo.File("Logs/errors.log", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error)  // Error logs
     .CreateLogger();
 
@@ -50,6 +51,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var traceId = Guid.NewGuid().ToString();
+    context.Items["TraceId"] = traceId;
+    Serilog.Context.LogContext.PushProperty("TraceId", traceId);
+    await next.Invoke();
+});
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
