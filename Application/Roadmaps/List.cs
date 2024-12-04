@@ -12,6 +12,7 @@ namespace Application.Roadmaps
         {
             public Guid UserId { get; set; }
             public string? SearchTerm { get; set; } // Optional search term
+            public string Filter { get; set; } = "all"; // Default filter is 'all'
 
         }
 
@@ -37,6 +38,12 @@ namespace Application.Roadmaps
                 {
                     query = query.Where(r =>
                         EF.Functions.Like(r.RoadmapName.ToLower(), $"%{request.SearchTerm.ToLower()}%"));
+                }
+
+                if (request.Filter != "all")
+                {
+                    bool isPublished = request.Filter == "not-started"; // You can customize the logic based on the filter values
+                    query = query.Where(r => r.IsPublished == isPublished);
                 }
 
                 var roadmaps = await query.ToListAsync(cancellationToken);

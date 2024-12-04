@@ -13,7 +13,7 @@ namespace API.Controllers
         }
 
         [HttpGet] // api/roadmaps
-        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps([FromQuery] string? searchTerm)
+        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps([FromQuery] string? searchTerm, [FromQuery] string filter = "all")
         {
             Log.Information("Fetching all roadmaps");
 
@@ -31,7 +31,8 @@ namespace API.Controllers
                 var roadmaps = await Mediator.Send(new List.Query
                 {
                     UserId = userId,
-                    SearchTerm = searchTerm
+                    SearchTerm = searchTerm,
+                    Filter = filter
                 });
 
 
