@@ -30,9 +30,17 @@ namespace Application.Roadmaps
             {
                 _logger.LogInformation("Fetching all roadmaps.");
 
-                var roadmaps = await _context.Roadmap
-                    .Where(r => r.UserId == request.UserId) // Example: filter based on userId
-                    .ToListAsync(cancellationToken);
+                var query = _context.Roadmap
+                    .Where(r => r.UserId == request.UserId);
+
+                if (!string.IsNullOrEmpty(request.SearchTerm))
+                {
+                    query = query.Where(r =>
+                        EF.Functions.Like(r.RoadmapName.ToLower(), $"%{request.SearchTerm.ToLower()}%"));
+                }
+
+                var roadmaps = await query.ToListAsync(cancellationToken);
+
 
                 if (roadmaps.Count == 0)
                 {

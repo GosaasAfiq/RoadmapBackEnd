@@ -13,7 +13,7 @@ namespace API.Controllers
         }
 
         [HttpGet] // api/roadmaps
-        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps()
+        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps([FromQuery] string? searchTerm)
         {
             Log.Information("Fetching all roadmaps");
 
@@ -28,8 +28,11 @@ namespace API.Controllers
                     return Unauthorized("Invalid UserId claim.");
                 }
 
-                // Pass the Guid UserId to the MediatR request
-                var roadmaps = await Mediator.Send(new List.Query { UserId = userId });
+                var roadmaps = await Mediator.Send(new List.Query
+                {
+                    UserId = userId,
+                    SearchTerm = searchTerm
+                });
 
 
                 _logger.LogInformation("Successfully retrieved {Count} roadmaps", roadmaps.Count);
