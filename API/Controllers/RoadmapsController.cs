@@ -13,7 +13,7 @@ namespace API.Controllers
         }
 
         [HttpGet] // api/roadmaps
-        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps([FromQuery] string? searchTerm, [FromQuery] string filter = "all")
+        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps([FromQuery] string searchTerm, [FromQuery] string filter = "all")
         {
             Log.Information("Fetching all roadmaps");
 

@@ -11,7 +11,7 @@ namespace Application.Roadmaps
         public class Query : IRequest<List<Roadmap>> 
         {
             public Guid UserId { get; set; }
-            public string? SearchTerm { get; set; } // Optional search term
+            public string SearchTerm { get; set; } // Optional search term
             public string Filter { get; set; } = "all"; // Default filter is 'all'
 
         }
