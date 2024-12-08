@@ -12,7 +12,10 @@ namespace API.Controllers
         }
 
         [HttpGet] // api/audittrail
-        public async Task<ActionResult<List<AuditTrail>>> GetAuditTrails([FromQuery] string searchTerm)
+        public async Task<ActionResult<List<AuditTrail>>> GetAuditTrails([FromQuery] string searchTerm, 
+            [FromQuery] string userFilter,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate)
         {
             Log.Information("Fetching all audit trails");
 
@@ -20,7 +23,10 @@ namespace API.Controllers
             {
                 var auditTrails = await Mediator.Send(new AuditTrailList.Query
                 {
-                    SearchTerm = searchTerm
+                    SearchTerm = searchTerm,
+                    UserFilter = userFilter,
+                    StartDate = startDate,
+                    EndDate = endDate
                 });
 
                 _logger.LogInformation("Successfully retrieved {Count} audit trails", auditTrails.Count);

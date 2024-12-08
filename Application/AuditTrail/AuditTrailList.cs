@@ -11,6 +11,9 @@ namespace Application.AuditTrails
         public class Query : IRequest<List<AuditTrail>>
         {
             public string SearchTerm { get; set; } // Optional search term
+            public string UserFilter { get; set; }
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
         }
 
         public class Handler : IRequestHandler<Query, List<AuditTrail>>
@@ -36,6 +39,23 @@ namespace Application.AuditTrails
                         EF.Functions.Like(a.Action.ToLower(), $"%{request.SearchTerm.ToLower()}%") ||
                         EF.Functions.Like(a.User.Username.ToLower(), $"%{request.SearchTerm.ToLower()}%"));
                 }
+
+                if (!string.IsNullOrEmpty(request.UserFilter))
+                {
+                    query = query.Where(a => a.User.Username.ToLower() == request.UserFilter.ToLower());
+                }
+
+                // Filter by start and end date
+                if (request.StartDate.HasValue)
+                {
+                    query = query.Where(a => a.Timestamp.Date >= request.StartDate.Value.Date); // Ensure date-only comparison
+                }
+                if (request.EndDate.HasValue)
+                {
+                    query = query.Where(a => a.Timestamp.Date <= request.EndDate.Value.Date); // Fix here
+                }
+
+
 
                 var auditTrails = await query
                     .Include(a => a.User) // Include related User entity
