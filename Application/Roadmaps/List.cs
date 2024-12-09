@@ -1,3 +1,4 @@
+using Application.Dto;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ namespace Application.Roadmaps
 {
     public class List
     {
-        public class Query : IRequest<List<Roadmap>> 
+        public class Query : IRequest<List<RoadmapDto>> 
         {
             public Guid UserId { get; set; }
             public string SearchTerm { get; set; } // Optional search term
@@ -16,7 +17,7 @@ namespace Application.Roadmaps
 
         }
 
-        public class Handler : IRequestHandler<Query, List<Roadmap>>
+        public class Handler : IRequestHandler<Query, List<RoadmapDto>>
         {
             private readonly DataContext _context;
             private readonly ILogger<Handler> _logger;
@@ -27,12 +28,16 @@ namespace Application.Roadmaps
                 _logger = logger;
             }
 
-            public async Task<List<Roadmap>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<List<RoadmapDto>> Handle(Query request, CancellationToken cancellationToken)
             {
                 _logger.LogInformation("Fetching all roadmaps.");
 
                 var query = _context.Roadmap
-                    .Where(r => r.UserId == request.UserId);
+                    .Where(r => r.UserId == request.UserId)
+                    .Include(r => r.Nodes.OrderBy(n => n.CreateAt)) // Sort top-level nodes by CreatedAt
+                        .ThenInclude(n => n.Children.OrderBy(c => c.CreateAt)) // Sort second-level nodes by CreatedAt
+                        .ThenInclude(c => c.Children.OrderBy(cc => cc.CreateAt)) // Sort third-level nodes by CreatedAt
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.SearchTerm))
                 {
@@ -58,7 +63,35 @@ namespace Application.Roadmaps
                     _logger.LogInformation("Successfully fetched {Count} roadmaps.", roadmaps.Count);
                 }
 
-                return roadmaps;
+                var roadmapDtos = roadmaps.Select(r => new RoadmapDto
+                {
+                    Id = r.Id,
+                    RoadmapName = r.RoadmapName,
+                    IsPublished = r.IsPublished,
+                    Nodes = r.Nodes
+                        .Where(n => n.ParentId == null) // Only include root nodes
+                        .OrderBy(n => n.CreateAt) // Sort root nodes by CreatedAt
+                        .Select(MapNodeToDto) // Map nodes recursively
+                        .ToList()
+                }).ToList();
+
+                return roadmapDtos;
+            }
+            private NodeDto MapNodeToDto(Node node)
+            {
+                return new NodeDto
+                {
+                    Id = node.Id,
+                    Name = node.Name,
+                    Description = node.Description,
+                    IsCompleted = node.IsCompleted,
+                    StartDate = node.StartDate,
+                    EndDate = node.EndDate,
+                    Children = node.Children
+                        .OrderBy(c => c.CreateAt)
+                        .Select(MapNodeToDto) // Recursively map child nodes
+                        .ToList()
+                };
             }
         }
     }

@@ -8,15 +8,23 @@ namespace Application.AuditTrails
 {
     public class AuditTrailList
     {
-        public class Query : IRequest<List<AuditTrail>>
+        public class Query : IRequest<Result>
         {
             public string SearchTerm { get; set; } // Optional search term
             public string UserFilter { get; set; }
             public DateTime? StartDate { get; set; }
             public DateTime? EndDate { get; set; }
+            public int Page { get; set; } = 1; // Default to page 1
+            public int PageSize { get; set; } = 6; // Default to 6 items per page
         }
 
-        public class Handler : IRequestHandler<Query, List<AuditTrail>>
+        public class Result
+        {
+            public int TotalCount { get; set; }
+            public List<AuditTrail> Items { get; set; }
+        }
+
+        public class Handler : IRequestHandler<Query, Result>
         {
             private readonly DataContext _context;
             private readonly ILogger<Handler> _logger;
@@ -27,7 +35,7 @@ namespace Application.AuditTrails
                 _logger = logger;
             }
 
-            public async Task<List<AuditTrail>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<Result> Handle(Query request, CancellationToken cancellationToken)
             {
                 _logger.LogInformation("Fetching all audit trails.");
 
@@ -55,23 +63,20 @@ namespace Application.AuditTrails
                     query = query.Where(a => a.Timestamp.Date <= request.EndDate.Value.Date); // Fix here
                 }
 
+                var totalCount = await query.CountAsync(cancellationToken); // Get total count
 
-
-                var auditTrails = await query
-                    .Include(a => a.User) // Include related User entity
+                var items = await query
+                    .Include(a => a.User)
                     .OrderByDescending(a => a.Timestamp)
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
                     .ToListAsync(cancellationToken);
 
-                if (auditTrails.Count == 0)
+                return new Result
                 {
-                    _logger.LogWarning("No audit trails found in the database.");
-                }
-                else
-                {
-                    _logger.LogInformation("Successfully fetched {Count} audit trails.", auditTrails.Count);
-                }
-
-                return auditTrails;
+                    TotalCount = totalCount,
+                    Items = items
+                };
             }
         }
     }
