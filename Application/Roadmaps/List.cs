@@ -45,10 +45,24 @@ namespace Application.Roadmaps
                         EF.Functions.Like(r.RoadmapName.ToLower(), $"%{request.SearchTerm.ToLower()}%"));
                 }
 
-                if (request.Filter != "all")
+                switch (request.Filter.ToLower())
                 {
-                    bool isPublished = request.Filter == "not-started"; // You can customize the logic based on the filter values
-                    query = query.Where(r => r.IsPublished == isPublished);
+                    case "draft":
+                        query = query.Where(r => !r.IsPublished);
+                        break;
+                    case "not-started":
+                        query = query.Where(r => r.IsPublished && !r.IsCompleted && !r.Nodes.Any(n => n.IsCompleted));
+                        break;
+                    case "in-progress":
+                        query = query.Where(r => r.IsPublished && !r.IsCompleted && r.Nodes.Any(n => n.IsCompleted));
+                        break;
+                    case "completed":
+                        query = query.Where(r => r.IsCompleted);
+                        break;
+                    case "all":
+                    default:
+                        // No filter, show all
+                        break;
                 }
 
                 var roadmaps = await query.ToListAsync(cancellationToken);
@@ -66,8 +80,12 @@ namespace Application.Roadmaps
                 var roadmapDtos = roadmaps.Select(r => new RoadmapDto
                 {
                     Id = r.Id,
+                    UserId = r.UserId,
                     RoadmapName = r.RoadmapName,
                     IsPublished = r.IsPublished,
+                    IsCompleted = r.IsCompleted,
+                    CreatedAt = r.CreatedAt,
+                    UpdatedAt = r.UpdatedAt,
                     Nodes = r.Nodes
                         .Where(n => n.ParentId == null) // Only include root nodes
                         .OrderBy(n => n.CreateAt) // Sort root nodes by CreatedAt
@@ -82,11 +100,15 @@ namespace Application.Roadmaps
                 return new NodeDto
                 {
                     Id = node.Id,
+                    RoadmapId = node.RoadmapId,
+                    ParentId = node.ParentId,
                     Name = node.Name,
                     Description = node.Description,
                     IsCompleted = node.IsCompleted,
                     StartDate = node.StartDate,
                     EndDate = node.EndDate,
+                    CreatedAt = node.CreateAt,
+                    UpdatedAt = node.UpdatedAt, 
                     Children = node.Children
                         .OrderBy(c => c.CreateAt)
                         .Select(MapNodeToDto) // Recursively map child nodes

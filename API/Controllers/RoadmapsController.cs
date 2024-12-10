@@ -71,5 +71,12 @@ namespace API.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRoadmap(Roadmap roadmap)
+        {
+            await Mediator.Send(new Create.Command { Roadmap = roadmap });
+            return Ok();
+        }
     }
 }

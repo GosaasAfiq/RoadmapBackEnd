@@ -8,6 +8,7 @@
         public bool IsCompleted { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public Guid RoadmapId { get; set; }
         public Guid? ParentId { get; set; } // Include if needed
         public DateTime CreatedAt { get; set; } // Optional
         public DateTime UpdatedAt { get; set; } // Optional
