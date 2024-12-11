@@ -73,10 +73,18 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateRoadmap(Roadmap roadmap)
+        public async Task<IActionResult> Create([FromBody] Create.Command command)
         {
-            await Mediator.Send(new Create.Command { Roadmap = roadmap });
+
+            if (command == null || command.Roadmap == null)
+            {
+                return BadRequest("Roadmap cannot be null.");
+            }
+
+
+            await Mediator.Send(command);
             return Ok();
         }
+
     }
 }
