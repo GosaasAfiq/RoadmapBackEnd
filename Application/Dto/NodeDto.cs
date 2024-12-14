@@ -12,6 +12,7 @@
         public Guid? ParentId { get; set; } // Include if needed
         public DateTime CreatedAt { get; set; } // Optional
         public DateTime UpdatedAt { get; set; } // Optional
+        public double CompletionRate { get; set; }  
         public List<NodeDto> Children { get; set; } = new();
     }
 }

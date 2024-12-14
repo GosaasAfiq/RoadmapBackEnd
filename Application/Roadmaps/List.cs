@@ -86,6 +86,7 @@ namespace Application.Roadmaps
                     IsCompleted = r.IsCompleted,
                     CreatedAt = r.CreatedAt,
                     UpdatedAt = r.UpdatedAt,
+                    CompletionRate = CalculateCompletionRate(r),
                     Nodes = r.Nodes
                         .Where(n => n.ParentId == null) // Only include root nodes
                         .OrderBy(n => n.CreateAt) // Sort root nodes by CreatedAt
@@ -95,6 +96,61 @@ namespace Application.Roadmaps
 
                 return roadmapDtos;
             }
+
+            private double CalculateCompletionRate(Roadmap roadmap)
+            {
+                // Get all milestones (parent nodes with null ParentId)
+                var milestones = roadmap.Nodes.Where(n => n.ParentId == null).ToList();
+
+                // Calculate the completion rate of each milestone
+                var completedMilestones = milestones.Count(m => CalculateMilestoneCompletionRate(m) == 100);
+
+                if (milestones.Count > 0)
+                {
+                    double averageMilestoneCompletion = milestones.Average(m => CalculateMilestoneCompletionRate(m));
+                    return Math.Round(averageMilestoneCompletion, 2);
+                }
+
+                return 0;
+            }
+
+            private double CalculateMilestoneCompletionRate(Node milestone)
+            {
+                // Get all sections (child nodes of the milestone)
+                var sections = milestone.Children.ToList();
+
+                // Calculate the completion rate of each section
+                var sectionCompletionRates = sections.Select(s => CalculateSectionCompletionRate(s)).ToList();
+
+                if (sections.Count > 0)
+                {
+                    double averageSectionCompletion = sectionCompletionRates.Average();
+                    return Math.Round(averageSectionCompletion, 2);
+                }
+
+                return 0; // If no sections, the milestone is considered 0% complete
+            }
+
+            private double CalculateSectionCompletionRate(Node section)
+            {
+                // Get all subsections (child nodes of the section)
+                var subsections = section.Children.ToList();
+
+                // Calculate the completion rate of each subsection
+                var subsectionCompletionRates = subsections.Select(s => s.IsCompleted ? 100 : 0).ToList();
+
+                if (subsections.Count > 0)
+                {
+                    double averageSubsectionCompletion = subsectionCompletionRates.Average();
+                    return Math.Round(averageSubsectionCompletion, 2);
+                }
+
+                return 0; // If no subsections, the section is considered 0% complete
+            }
+
+
+
+
             private NodeDto MapNodeToDto(Node node)
             {
                 return new NodeDto
@@ -108,12 +164,28 @@ namespace Application.Roadmaps
                     StartDate = node.StartDate,
                     EndDate = node.EndDate,
                     CreatedAt = node.CreateAt,
-                    UpdatedAt = node.UpdatedAt, 
+                    UpdatedAt = node.UpdatedAt,
+                    CompletionRate = CalculateNodeCompletionRate(node),
                     Children = node.Children
                         .OrderBy(c => c.CreateAt)
                         .Select(MapNodeToDto) // Recursively map child nodes
                         .ToList()
                 };
+            }
+            private double CalculateNodeCompletionRate(Node node)
+            {
+                if (node.ParentId == null) // It's a milestone
+                {
+                    return CalculateMilestoneCompletionRate(node);
+                }
+                else if (node.Children.Count > 0) // It's a section (has subsections)
+                {
+                    return CalculateSectionCompletionRate(node);
+                }
+                else // It's a subsection
+                {
+                    return node.IsCompleted ? 100 : 0;
+                }
             }
         }
     }

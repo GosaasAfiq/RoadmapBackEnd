@@ -9,6 +9,7 @@
         public bool IsCompleted { get; set; } // Optional, depending on frontend requirements
         public DateTime CreatedAt { get; set; } // Optional
         public DateTime UpdatedAt { get; set; } // Optional
+        public double CompletionRate { get; set; } // Add completion rate property
         public List<NodeDto> Nodes { get; set; } = new();
     }
 }

@@ -35,16 +35,18 @@ namespace Application.Roadmaps
                 }
 
                 var currentTime = DateTime.UtcNow;
+                var timestamp = currentTime;
+
                 // Create the Roadmap
                 var roadmap = new Roadmap
                 {
                     Id = Guid.NewGuid(),
                     RoadmapName = request.Roadmap.Name,
                     UserId = request.Roadmap.UserId,
-                    IsPublished = false, // set accordingly
+                    IsPublished = request.Roadmap.IsPublished, // set accordingly
                     IsCompleted = false, // set accordingly
-                    CreatedAt = currentTime,
-                    UpdatedAt = currentTime,
+                    CreatedAt = timestamp,
+                    UpdatedAt = timestamp,
                     Nodes = new List<Node>()
                 };
 
@@ -67,10 +69,12 @@ namespace Application.Roadmaps
                         ParentId = null,
                         RoadmapId = roadmap.Id,
                         IsCompleted = false,
-                        CreateAt = currentTime,
-                        UpdatedAt = currentTime,
+                        CreateAt = timestamp,
+                        UpdatedAt = timestamp,
                         Children = new List<Node>()
                     };
+
+                    timestamp = timestamp.AddMilliseconds(10);
 
                     // Map Sections
                     foreach (var sectionDto in milestoneDto.Sections)
@@ -90,10 +94,12 @@ namespace Application.Roadmaps
                             ParentId = milestone.Id,
                             RoadmapId = roadmap.Id,
                             IsCompleted = false,
-                            CreateAt = currentTime,
-                            UpdatedAt = currentTime,
+                            CreateAt = timestamp,
+                            UpdatedAt = timestamp,
                             Children = new List<Node>()
                         };
+
+                        timestamp = timestamp.AddMilliseconds(10);
 
                         // Map Subsections
                         foreach (var subSectionDto in sectionDto.SubSections)
@@ -112,10 +118,12 @@ namespace Application.Roadmaps
                                 EndDate = subSectionDto.EndDate.ToUniversalTime(),
                                 ParentId = section.Id,
                                 RoadmapId = roadmap.Id,
-                                CreateAt = currentTime,
-                                UpdatedAt = currentTime,
+                                CreateAt = timestamp,
+                                UpdatedAt = timestamp,
                                 IsCompleted = false,
                             };
+
+                            timestamp = timestamp.AddMilliseconds(10);
 
                             section.Children.Add(subSection);
                         }

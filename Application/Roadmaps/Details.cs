@@ -87,3 +87,43 @@ namespace Application.Roadmaps
         }
     }
 }
+
+
+//private double CalculateCompletionRate(Roadmap roadmap)
+//{
+//    var totalMilestones = roadmap.Nodes.Count;
+//    var completedMilestones = roadmap.Nodes.Count(n => CalculateMilestoneCompletionRate(n) == 100);
+
+//    if (totalMilestones > 0)
+//    {
+//        double averageMilestoneCompletion = roadmap.Nodes.Average(n => CalculateMilestoneCompletionRate(n));
+//        return Math.Round(averageMilestoneCompletion, 2);
+//    }
+//    return 0;
+//}
+
+
+//private double CalculateMilestoneCompletionRate(Node milestone)
+//{
+//    var totalSections = milestone.Children.Count;
+//    var completedSections = milestone.Children.Count(s => CalculateSectionCompletionRate(s) == 100);
+
+//    // Calculate the completion rate based on average completion of sections
+//    if (totalSections > 0)
+//    {
+//        double averageSectionCompletion = milestone.Children.Average(s => CalculateSectionCompletionRate(s));
+//        return Math.Round(averageSectionCompletion, 2);
+//    }
+//    return 0;
+//}
+
+
+//private double CalculateSectionCompletionRate(Node section)
+//{
+//    var totalSubsections = section.Children.Count;
+//    var completedSubsections = section.Children.Count(c => c.IsCompleted);
+
+//    return totalSubsections > 0
+//        ? Math.Round((double)completedSubsections / totalSubsections * 100, 2)
+//        : 0;
+//}
