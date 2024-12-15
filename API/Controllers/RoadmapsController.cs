@@ -1,6 +1,7 @@
 using Application.Roadmaps;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Serilog;
 using System.Security.Claims;
 
@@ -13,7 +14,11 @@ namespace API.Controllers
         }
 
         [HttpGet] // api/roadmaps
-        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps([FromQuery] string searchTerm, [FromQuery] string filter = "all")
+        public async Task<ActionResult<List<Roadmap>>> GetRoadmaps(
+            [FromQuery] string searchTerm, 
+            [FromQuery] string filter = "all", 
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 6)
         {
             Log.Information("Fetching all roadmaps");
 
@@ -32,11 +37,12 @@ namespace API.Controllers
                 {
                     UserId = userId,
                     SearchTerm = searchTerm,
-                    Filter = filter
+                    Filter = filter,
+                    Page = page,
+                    PageSize = pageSize
                 });
 
 
-                _logger.LogInformation("Successfully retrieved {Count} roadmaps", roadmaps.Count);
                 return Ok(roadmaps);
             }
             catch (Exception ex)

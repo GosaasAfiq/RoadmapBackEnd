@@ -10,6 +10,8 @@
         public DateTime CreatedAt { get; set; } // Optional
         public DateTime UpdatedAt { get; set; } // Optional
         public double CompletionRate { get; set; } // Add completion rate property
+        public string StartDate { get; set; } // Nullable in case no milestones exist
+        public string EndDate { get; set; }
         public List<NodeDto> Nodes { get; set; } = new();
     }
 }
