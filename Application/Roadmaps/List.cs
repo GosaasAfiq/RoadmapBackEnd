@@ -190,44 +190,63 @@ namespace Application.Roadmaps
             // Method to calculate the completion rate for roadmaps, milestones, sections, and subsections remains unchanged
             private double CalculateCompletionRate(Roadmap roadmap)
             {
-                var milestones = roadmap.Nodes.Where(n => n.ParentId == null).ToList();
-                var completedMilestones = milestones.Count(m => CalculateMilestoneCompletionRate(m) == 100);
+                var milestones = roadmap.Nodes.Where(n => n.ParentId == null).ToList(); // Top-level milestones
+                var totalMilestones = milestones.Count;
 
-                if (milestones.Count > 0)
+                if (totalMilestones == 0)
                 {
-                    double averageMilestoneCompletion = milestones.Average(m => CalculateMilestoneCompletionRate(m));
-                    return Math.Round(averageMilestoneCompletion, 2);
+                    return 0;
                 }
 
-                return 0;
+                double totalCompletionRate = 0;
+                foreach (var milestone in milestones)
+                {
+                    totalCompletionRate += CalculateMilestoneCompletionRate(milestone);
+                }
+
+                return Math.Round((totalCompletionRate / totalMilestones), 2); // Return average completion rate of all milestones
             }
+
 
             private double CalculateMilestoneCompletionRate(Node milestone)
             {
-                var sections = milestone.Children.ToList();
-                var sectionCompletionRates = sections.Select(s => CalculateSectionCompletionRate(s)).ToList();
+                var sections = milestone.Children.ToList(); // Sections under the milestone
+                var totalSections = sections.Count;
 
-                if (sections.Count > 0)
+                // If no sections, check if the milestone itself is marked as completed
+                if (totalSections == 0)
                 {
-                    double averageSectionCompletion = sectionCompletionRates.Average();
-                    return Math.Round(averageSectionCompletion, 2);
+                    return milestone.IsCompleted ? 100 : 0;
                 }
 
-                return 0;
+                double totalSectionCompletion = 0;
+                foreach (var section in sections)
+                {
+                    totalSectionCompletion += CalculateSectionCompletionRate(section);
+                }
+
+                return Math.Round((totalSectionCompletion / totalSections), 2); // Return average completion rate of all sections
             }
+
 
             private double CalculateSectionCompletionRate(Node section)
             {
-                var subsections = section.Children.ToList();
-                var subsectionCompletionRates = subsections.Select(s => s.IsCompleted ? 100 : 0).ToList();
+                var subsections = section.Children.ToList(); // Subsections under the section
+                var totalSubsections = subsections.Count;
 
-                if (subsections.Count > 0)
+                // If no subsections, check if the section itself is marked as completed
+                if (totalSubsections == 0)
                 {
-                    double averageSubsectionCompletion = subsectionCompletionRates.Average();
-                    return Math.Round(averageSubsectionCompletion, 2);
+                    return section.IsCompleted ? 100 : 0;
                 }
 
-                return 0;
+                double totalSubsectionCompletion = 0;
+                foreach (var subsection in subsections)
+                {
+                    totalSubsectionCompletion += subsection.IsCompleted ? 100 : 0; // 100 if completed, 0 if not
+                }
+
+                return Math.Round((totalSubsectionCompletion / totalSubsections), 2); // Return average completion rate of all subsections
             }
 
             private NodeDto MapNodeToDto(Node node)
