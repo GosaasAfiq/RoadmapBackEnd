@@ -47,13 +47,13 @@ namespace Application.Roadmaps
                 var startDate = roadmap.Nodes
                     .Where(n => n.ParentId == null)
                     .OrderBy(n => n.StartDate)
-                    .Select(n => n.StartDate.Date.ToString("yyyy-MM-dd")) // Convert to "yyyy-MM-dd" string
+                    .Select(n => n.StartDate.HasValue ? n.StartDate.Value.Date.ToString("yyyy-MM-dd") : null)
                     .FirstOrDefault();
 
                 var endDate = roadmap.Nodes
                     .Where(n => n.ParentId == null)
                     .OrderByDescending(n => n.EndDate)
-                    .Select(n => n.EndDate.Date.ToString("yyyy-MM-dd")) // Convert to "yyyy-MM-dd" string
+                    .Select(n => n.EndDate.HasValue ? n.EndDate.Value.Date.ToString("yyyy-MM-dd") : null)
                     .FirstOrDefault();
 
                 //var completionRate = CalculateCompletionRate(roadmap);

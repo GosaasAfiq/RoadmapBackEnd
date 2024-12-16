@@ -156,13 +156,13 @@ namespace Application.Roadmaps
                     StartDate = r.Nodes
                         .Where(n => n.ParentId == null) // Only consider milestones
                         .OrderBy(n => n.StartDate)
-                        .Select(n => n.StartDate.Date.ToString("yyyy-MM-dd")) // Convert to string in "yyyy-MM-dd" format
+                        .Select(n => n.StartDate.HasValue ? n.StartDate.Value.Date.ToString("yyyy-MM-dd") : null)
                         .FirstOrDefault(),
 
                     EndDate = r.Nodes
                         .Where(n => n.ParentId == null) // Only consider milestones
                         .OrderByDescending(n => n.EndDate)
-                        .Select(n => n.EndDate.Date.ToString("yyyy-MM-dd")) // Convert to string in "yyyy-MM-dd" format
+                        .Select(n => n.EndDate.HasValue ? n.EndDate.Value.Date.ToString("yyyy-MM-dd") : null)
                         .FirstOrDefault(),
 
 

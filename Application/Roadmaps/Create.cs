@@ -24,16 +24,6 @@ namespace Application.Roadmaps
             public async Task Handle(Command request, CancellationToken cancellationToken)
             {
 
-                if (request.Roadmap == null)
-                {
-                    throw new ArgumentNullException(nameof(request.Roadmap), "Roadmap cannot be null.");
-                }
-
-                if (request.Roadmap.Milestones == null)
-                {
-                    throw new ArgumentNullException(nameof(request.Roadmap.Milestones), "Milestones cannot be null.");
-                }
-
                 var currentTime = DateTime.UtcNow;
                 var timestamp = currentTime;
 
@@ -63,9 +53,9 @@ namespace Application.Roadmaps
                     {
                         Id = Guid.NewGuid(),
                         Name = milestoneDto.Name,
-                        Description = milestoneDto.Description,
-                        StartDate = milestoneDto.StartDate.ToUniversalTime(),
-                        EndDate = milestoneDto.EndDate.ToUniversalTime(),
+                        Description = milestoneDto.Description ?? string.Empty,
+                        StartDate = milestoneDto.StartDate?.ToUniversalTime(),
+                        EndDate = milestoneDto.EndDate?.ToUniversalTime(),
                         ParentId = null,
                         RoadmapId = roadmap.Id,
                         IsCompleted = false,
@@ -88,9 +78,9 @@ namespace Application.Roadmaps
                         {
                             Id = Guid.NewGuid(),
                             Name = sectionDto.Name,
-                            Description = sectionDto.Description,
-                            StartDate = sectionDto.StartDate.ToUniversalTime(),
-                            EndDate = sectionDto.EndDate.ToUniversalTime(),
+                            Description = sectionDto.Description ?? string.Empty,  // Default to empty string if null
+                            StartDate = sectionDto.StartDate?.ToUniversalTime(),
+                            EndDate = sectionDto.EndDate?.ToUniversalTime(),
                             ParentId = milestone.Id,
                             RoadmapId = roadmap.Id,
                             IsCompleted = false,
@@ -113,9 +103,9 @@ namespace Application.Roadmaps
                             {
                                 Id = Guid.NewGuid(),
                                 Name = subSectionDto.Name,
-                                Description = subSectionDto.Description,
-                                StartDate = subSectionDto.StartDate.ToUniversalTime(),
-                                EndDate = subSectionDto.EndDate.ToUniversalTime(),
+                                Description = subSectionDto.Description ?? string.Empty,  // Default to empty string if null
+                                StartDate = subSectionDto.StartDate?.ToUniversalTime(),
+                                EndDate = subSectionDto.EndDate?.ToUniversalTime(),
                                 ParentId = section.Id,
                                 RoadmapId = roadmap.Id,
                                 CreateAt = timestamp,
@@ -133,6 +123,8 @@ namespace Application.Roadmaps
 
                     roadmap.Nodes.Add(milestone);
                 }
+
+                Console.WriteLine("Roadmap" + roadmap);
 
                 // Add the new roadmap to the context and save changes
                 _context.Roadmap.Add(roadmap);
