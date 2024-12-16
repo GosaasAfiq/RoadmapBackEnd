@@ -44,5 +44,12 @@ namespace API.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
+
+        [HttpPost] // api/audittrail
+        public async Task<IActionResult> Create([FromBody] CreateAuditTrail.Command command)
+        {
+            await Mediator.Send(command);
+            return Ok();
+        }
     }
 }

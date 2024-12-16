@@ -85,5 +85,16 @@ namespace API.Controllers
             return Ok();
         }
 
+        [HttpPut("updatenode")]
+        public async Task<IActionResult> UpdateRoadmap([FromBody] UpdateNode.Command command)
+        {
+            await Mediator.Send(command);
+            return Ok();
+
+        }
+
+
+
+
     }
 }
