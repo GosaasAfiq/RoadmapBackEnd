@@ -1,5 +1,7 @@
 ﻿using Domain;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistence;
 
 namespace Application.Roadmaps
@@ -14,16 +16,132 @@ namespace Application.Roadmaps
         public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext _context;
-            public Handler(DataContext context)
+            private readonly ILogger<Handler> _logger;
+            public Handler(DataContext context, ILogger<Handler> logger)
             {
                 _context = context;
+                _logger = logger;
             }
 
 
             public async Task Handle(Command request, CancellationToken cancellationToken)
             {
-                Console.WriteLine("Roadmap first node " + request.Roadmap.Nodes.ElementAt(0).Id);
+                var existingRoadmap = await _context.Roadmap
+                    .Include(r => r.Nodes)
+                    .FirstOrDefaultAsync(r => r.Id == request.Roadmap.Id, cancellationToken);
+
+                foreach (var incomingNode in request.Roadmap.Nodes)
+                {
+                    var existingNode = existingRoadmap.Nodes.FirstOrDefault(n => n.Id == incomingNode.Id);
+
+                    // Compare the existing node and update isCompleted if conditions are met
+                    if (existingNode != null && incomingNode.IsCompleted && !existingNode.IsCompleted)
+                    {
+                        existingNode.IsCompleted = true;
+                        existingNode.UpdatedAt = DateTime.UtcNow; // Update the timestamp
+                    }
+                }
+
+                foreach (var node in existingRoadmap.Nodes)
+                {
+                    await UpdateParentNodeStatus(node);
+                }
+
+                // Now check if all milestones are complete to mark the roadmap as complete
+                UpdateRoadmapStatus(existingRoadmap);
+
+                // Save the changes
+                await _context.SaveChangesAsync(cancellationToken);
             }
+            private async Task UpdateParentNodeStatus(Node node)
+            {
+
+                // Step 1: Check if the current node is a section or milestone
+                // First, we check for a section node.
+                if (node.ParentId == null)
+                {
+                    // It's a milestone, move on to check its children (if any)
+                    await ProcessMilestoneNode(node);
+                }
+                else
+                {
+                    // It's a section node, let's check if it has children
+                    await ProcessSectionNode(node);
+                }
+            }
+
+            private async Task ProcessSectionNode(Node node)
+            {
+                // Step 2: Check if the section node has children
+                if (node.Children != null && node.Children.Any())
+                {
+                    // Step 3: Put all the children in a list and check if all are completed
+                    List<Node> children = node.Children.ToList();
+                    bool allChildrenCompleted = true;
+
+                    foreach (var child in children)
+                    {
+                        if (!child.IsCompleted)
+                        {
+                            allChildrenCompleted = false;
+                            break;
+                        }
+                    }
+
+                    // Step 4: If all children are completed, mark the section as completed
+                    if (allChildrenCompleted)
+                    {
+                        node.IsCompleted = true;
+                        node.UpdatedAt = DateTime.UtcNow;
+                        _context.Node.Update(node);
+                    } 
+                }                
+            }
+
+            private async Task ProcessMilestoneNode(Node node)
+            {
+                // Step 5: Now check if the milestone node has children
+                if (node.Children != null && node.Children.Any())
+                {
+                    // Step 6: Put all children in a list and check if all of them are completed
+                    List<Node> children = node.Children.ToList();
+                    bool allChildrenCompleted = true;
+
+                    foreach (var child in children)
+                    {
+                        if (!child.IsCompleted)
+                        {
+                            allChildrenCompleted = false;
+                            break;
+                        }
+                    }
+
+                    // Step 7: If all children are completed, mark the milestone as completed
+                    if (allChildrenCompleted)
+                    {
+                        node.IsCompleted = true;
+                        node.UpdatedAt = DateTime.UtcNow;
+                        _context.Node.Update(node);
+                    }   
+                }
+            }
+
+
+            private void UpdateRoadmapStatus(Roadmap roadmap)
+            {
+                // Check if all milestones are complete
+                var allMilestonesComplete = roadmap.Nodes
+                    .Where(n => n.ParentId == null) // Milestones only
+                    .All(m => m.IsCompleted);
+
+                if (allMilestonesComplete && !roadmap.IsCompleted)
+                {
+                    roadmap.IsCompleted = true;
+                    roadmap.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
         }
     }
 }
+

@@ -49,7 +49,7 @@ namespace Application.Roadmaps
 
                 // Start the query
                 var query = _context.Roadmap
-                    .Where(r => r.UserId == request.UserId)
+                    .Where(r => r.UserId == request.UserId && !r.IsDeleted)
                     .Include(r => r.Nodes.OrderBy(n => n.CreateAt)) // Sort top-level nodes by CreatedAt
                         .ThenInclude(n => n.Children.OrderBy(c => c.CreateAt)) // Sort second-level nodes by CreatedAt
                         .ThenInclude(c => c.Children.OrderBy(cc => cc.CreateAt)) // Sort third-level nodes by CreatedAt

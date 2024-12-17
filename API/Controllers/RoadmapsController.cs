@@ -93,8 +93,19 @@ namespace API.Controllers
 
         }
 
-
-
+        [HttpPut("deleteroadmap")]
+        public async Task<IActionResult> DeleteRoadmap([FromBody] DeleteRoadmap.Command command)
+        {
+            try
+            {
+                await Mediator.Send(command);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
 
     }
 }
