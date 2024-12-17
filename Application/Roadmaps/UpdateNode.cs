@@ -44,7 +44,12 @@ namespace Application.Roadmaps
 
                 foreach (var node in existingRoadmap.Nodes)
                 {
-                    await UpdateParentNodeStatus(node);
+                    await UpdateSectionNode(node);
+                }
+
+                foreach (var node in existingRoadmap.Nodes)
+                {
+                    await UpdateMilestoneNode(node);
                 }
 
                 // Now check if all milestones are complete to mark the roadmap as complete
@@ -53,21 +58,23 @@ namespace Application.Roadmaps
                 // Save the changes
                 await _context.SaveChangesAsync(cancellationToken);
             }
-            private async Task UpdateParentNodeStatus(Node node)
+            private async Task UpdateSectionNode(Node node)
             {
 
-                // Step 1: Check if the current node is a section or milestone
-                // First, we check for a section node.
-                if (node.ParentId == null)
+                if (node.ParentId != null)
                 {
-                    // It's a milestone, move on to check its children (if any)
-                    await ProcessMilestoneNode(node);
-                }
-                else
-                {
-                    // It's a section node, let's check if it has children
                     await ProcessSectionNode(node);
                 }
+            }
+
+            private async Task UpdateMilestoneNode(Node node)
+            {
+
+                if (node.ParentId == null)
+                {
+                    await ProcessMilestoneNode(node);
+                }
+
             }
 
             private async Task ProcessSectionNode(Node node)
