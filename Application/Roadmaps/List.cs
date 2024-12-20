@@ -261,7 +261,7 @@ namespace Application.Roadmaps
                     IsCompleted = node.IsCompleted,
                     StartDate = node.StartDate,
                     EndDate = node.EndDate,
-                    CreatedAt = node.CreateAt,
+                    CreateAt = node.CreateAt,
                     UpdatedAt = node.UpdatedAt,
                     CompletionRate = CalculateNodeCompletionRate(node),
                     Children = node.Children

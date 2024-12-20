@@ -107,5 +107,12 @@ namespace API.Controllers
             }
         }
 
+        [HttpPost("updateroadmap")]
+        public async Task<IActionResult> UpdateRoadmap([FromBody] UpdateRoadmap.Command command)
+        {
+            await Mediator.Send(command);
+            return Ok();
+        }
+
     }
 }
