@@ -27,17 +27,14 @@ namespace Application.AuditTrails
         public class Handler : IRequestHandler<Query, Result>
         {
             private readonly DataContext _context;
-            private readonly ILogger<Handler> _logger;
 
-            public Handler(DataContext context, ILogger<Handler> logger)
+            public Handler(DataContext context)
             {
                 _context = context;
-                _logger = logger;
             }
 
             public async Task<Result> Handle(Query request, CancellationToken cancellationToken)
             {
-                _logger.LogInformation("Fetching all audit trails.");
 
                 var query = _context.AuditTrail.AsQueryable();
 

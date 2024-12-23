@@ -23,24 +23,20 @@ namespace Application.Users
         {
             private readonly DataContext _context;
             private readonly IConfiguration _config;
-            private readonly ILogger<Handler> _logger;
 
-            public Handler(DataContext context, IConfiguration config, ILogger<Handler> logger)
+            public Handler(DataContext context, IConfiguration config)
             {
                 _context = context;
                 _config = config;
-                _logger = logger;
             }
 
             public async Task<LoginResponse> Handle(Command request, CancellationToken cancellationToken)
             {
-                _logger.LogInformation("Received Google login request.");
 
                 try
                 {
                     // Validate Google Token
                     var payload = await GoogleJsonWebSignature.ValidateAsync(request.Credential);
-                    _logger.LogInformation("Google token validated for email: {Email}", payload.Email);
 
                     // Check if user exists in the database
                     var user = await _context.User.FirstOrDefaultAsync(u => u.Email == payload.Email, cancellationToken);
@@ -60,16 +56,11 @@ namespace Application.Users
                         _context.User.Add(user);
                         await _context.SaveChangesAsync(cancellationToken);
 
-                        _logger.LogInformation("New user created: {Email}", payload.Email);
                     }
-                    else
-                    {
-                        _logger.LogInformation("Existing user found: {Email}", user.Email);
-                    }
+                    
 
                     // Generate JWT Token
                     var token = GenerateJwtToken(user);
-                    _logger.LogInformation("JWT token generated for user: {Email}", user.Email);
 
                     return new LoginResponse
                     {
@@ -84,7 +75,6 @@ namespace Application.Users
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing Google login for credential: {Credential}", request.Credential);
                     throw new Exception("Invalid token", ex); // You can handle this error appropriately
                 }
             }

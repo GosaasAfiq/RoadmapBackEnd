@@ -14,12 +14,10 @@ namespace Application.Roadmaps
         public class Handler : IRequestHandler<Query, List<User>>
         {
             private readonly DataContext _context;
-            private readonly ILogger<Handler> _logger;
 
-            public Handler(DataContext context, ILogger<Handler> logger)
+            public Handler(DataContext context)
             {
                 _context = context;
-                _logger = logger;
             }
 
             public async Task<List<User>> Handle(Query request, CancellationToken cancellationToken)

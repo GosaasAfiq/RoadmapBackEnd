@@ -21,7 +21,6 @@ namespace API.Controllers
             [FromQuery] int pageSize = 6
             )
         {
-            Log.Information("Fetching all audit trails");
 
             try
             {
@@ -35,12 +34,10 @@ namespace API.Controllers
                     PageSize = pageSize
                 });
 
-                _logger.LogInformation("Successfully retrieved audit trails");
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching audit trails");
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }

@@ -17,18 +17,14 @@ namespace Application.Roadmaps
         public class Handler : IRequestHandler<Query, RoadmapDto>
         {
             private readonly DataContext _context;
-            private readonly ILogger<Handler> _logger;
 
-            public Handler(DataContext context, ILogger<Handler> logger)
+            public Handler(DataContext context)
             {
                 _context = context;
-                _logger = logger;
             }
 
             public async Task<RoadmapDto> Handle(Query request, CancellationToken cancellationToken)
             {
-                _logger.LogInformation("Fetching details for roadmap with ID: {RoadmapId}", request.Id);
-
                 // Fetch the roadmap including its nodes and children
                 var roadmap = await _context.Roadmap
                     .Include(r => r.Nodes.OrderBy(n => n.CreateAt)) // Sort top-level nodes by CreatedAt
@@ -38,22 +34,19 @@ namespace Application.Roadmaps
 
                 if (roadmap == null)
                 {
-                    _logger.LogWarning("Roadmap with ID: {RoadmapId} not found", request.Id);
                     return null; // Or handle differently if you want to return an error response
                 }
-
-                _logger.LogInformation("Successfully fetched roadmap with ID: {RoadmapId}", request.Id);
 
                 var startDate = roadmap.Nodes
                     .Where(n => n.ParentId == null)
                     .OrderBy(n => n.StartDate)
-                    .Select(n => n.StartDate.HasValue ? n.StartDate.Value.Date.ToString("yyyy-MM-dd") : null)
+                    .Select(n => n.StartDate.HasValue ? n.StartDate.Value.AddDays(1).Date.ToString("dd-MM-yyyy") : null)
                     .FirstOrDefault();
 
                 var endDate = roadmap.Nodes
                     .Where(n => n.ParentId == null)
                     .OrderByDescending(n => n.EndDate)
-                    .Select(n => n.EndDate.HasValue ? n.EndDate.Value.Date.ToString("yyyy-MM-dd") : null)
+                    .Select(n => n.EndDate.HasValue ? n.EndDate.Value.AddDays(1).Date.ToString("dd-MM-yyyy") : null)
                     .FirstOrDefault();
 
                 //var completionRate = CalculateCompletionRate(roadmap);
@@ -66,8 +59,8 @@ namespace Application.Roadmaps
                     RoadmapName = roadmap.RoadmapName,
                     IsPublished = roadmap.IsPublished,
                     IsCompleted = roadmap.IsCompleted,
-                    CreatedAt = roadmap.CreatedAt,
-                    UpdatedAt = roadmap.UpdatedAt,
+                    CreatedAt = roadmap.CreatedAt.ToString("dd-MM-yyyy"),
+                    UpdatedAt = roadmap.UpdatedAt.ToString("dd-MM-yyyy"),
                     StartDate = startDate,
                     EndDate = endDate,
                     CompletionRate = CalculateCompletionRate(roadmap),

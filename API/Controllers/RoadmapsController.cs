@@ -20,7 +20,6 @@ namespace API.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 6)
         {
-            Log.Information("Fetching all roadmaps");
 
             try
             {
@@ -29,7 +28,6 @@ namespace API.Controllers
                 // Convert the userId to Guid
                 if (!Guid.TryParse(userIdString, out Guid userId))
                 {
-                    _logger.LogWarning("Invalid UserId claim: {UserId}", userIdString);
                     return Unauthorized("Invalid UserId claim.");
                 }
 
@@ -47,7 +45,6 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching all roadmaps");
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
@@ -55,7 +52,6 @@ namespace API.Controllers
         [HttpGet("{id}")] // api/roadmaps/{id}
         public async Task<ActionResult<Roadmap>> GetRoadmap(Guid id)
         {
-            _logger.LogInformation("Fetching roadmap with ID: {Id}", id);
 
             try
             {
@@ -64,16 +60,13 @@ namespace API.Controllers
 
                 if (roadmap == null)
                 {
-                    _logger.LogWarning("Roadmap with ID {Id} not found", id);
                     return NotFound($"Roadmap with ID {id} not found.");
                 }
 
-                _logger.LogInformation("Successfully retrieved roadmap with ID: {Id}", id);
                 return Ok(roadmap);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching roadmap with ID: {Id}", id);
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }

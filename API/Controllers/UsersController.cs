@@ -18,13 +18,10 @@ namespace API.Controllers
             try
             {
                 var userList = await Mediator.Send(new UserList.Query());
-
-                _logger.LogInformation("Get user");
                 return Ok(userList);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching user");
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }

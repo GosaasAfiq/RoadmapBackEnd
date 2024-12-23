@@ -16,11 +16,9 @@ namespace Application.Roadmaps
         public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext _context;
-            private readonly ILogger<Handler> _logger;
-            public Handler(DataContext context, ILogger<Handler> logger)
+            public Handler(DataContext context)
             {
                 _context = context;
-                _logger = logger;
             }
 
 

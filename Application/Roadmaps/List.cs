@@ -33,17 +33,14 @@ namespace Application.Roadmaps
         public class Handler : IRequestHandler<Query, Result>
         {
             private readonly DataContext _context;
-            private readonly ILogger<Handler> _logger;
 
-            public Handler(DataContext context, ILogger<Handler> logger)
+            public Handler(DataContext context)
             {
                 _context = context;
-                _logger = logger;
             }
 
             public async Task<Result> Handle(Query request, CancellationToken cancellationToken)
             {
-                _logger.LogInformation("Fetching all roadmaps.");
                 var currentDate = DateTime.UtcNow; // Use UTC or DateTime.Now based on your requirements
 
 
@@ -53,6 +50,7 @@ namespace Application.Roadmaps
                     .Include(r => r.Nodes.OrderBy(n => n.CreateAt)) // Sort top-level nodes by CreatedAt
                         .ThenInclude(n => n.Children.OrderBy(c => c.CreateAt)) // Sort second-level nodes by CreatedAt
                         .ThenInclude(c => c.Children.OrderBy(cc => cc.CreateAt)) // Sort third-level nodes by CreatedAt
+                    .OrderByDescending(r => r.CreatedAt)
                     .AsQueryable();
 
                 // Apply search term filter if provided
@@ -132,16 +130,6 @@ namespace Application.Roadmaps
                     .Take(request.PageSize)  // Take the number of items specified in PageSize
                     .ToListAsync(cancellationToken);
 
-                // Log the count of fetched roadmaps
-                if (roadmaps.Count == 0)
-                {
-                    _logger.LogWarning("No roadmaps found in the database.");
-                }
-                else
-                {
-                    _logger.LogInformation("Successfully fetched {Count} roadmaps.", roadmaps.Count);
-                }
-
                 // Map the fetched roadmaps to RoadmapDto
                 var roadmapDtos = roadmaps.Select(r => new RoadmapDto
                 {
@@ -150,19 +138,19 @@ namespace Application.Roadmaps
                     RoadmapName = r.RoadmapName,
                     IsPublished = r.IsPublished,
                     IsCompleted = r.IsCompleted,
-                    CreatedAt = r.CreatedAt,
-                    UpdatedAt = r.UpdatedAt,
+                    CreatedAt = r.CreatedAt.ToString("dd-MM-yyyy"),
+                    UpdatedAt = r.UpdatedAt.ToString("dd-MM-yyyy"),
                     CompletionRate = CalculateCompletionRate(r),
                     StartDate = r.Nodes
                         .Where(n => n.ParentId == null) // Only consider milestones
                         .OrderBy(n => n.StartDate)
-                        .Select(n => n.StartDate.HasValue ? n.StartDate.Value.Date.ToString("yyyy-MM-dd") : null)
+                        .Select(n => n.StartDate.HasValue ? n.StartDate.Value.AddDays(1).Date.ToString("dd-MM-yyyy") : null)
                         .FirstOrDefault(),
 
                     EndDate = r.Nodes
                         .Where(n => n.ParentId == null) // Only consider milestones
                         .OrderByDescending(n => n.EndDate)
-                        .Select(n => n.EndDate.HasValue ? n.EndDate.Value.Date.ToString("yyyy-MM-dd") : null)
+                        .Select(n => n.EndDate.HasValue ? n.EndDate.Value.AddDays(1).Date.ToString("dd-MM-yyyy") : null)
                         .FirstOrDefault(),
 
 
