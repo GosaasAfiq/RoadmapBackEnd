@@ -16,6 +16,7 @@ namespace Application.Roadmaps
             public string Filter { get; set; } = "all"; // Default filter is 'all'
             public int Page { get; set; } = 1; // Default to page 1
             public int PageSize { get; set; } = 6; // Default to 6 items per page
+            public string SortBy { get; set; }
         }
 
         public class Result
@@ -117,9 +118,18 @@ namespace Application.Roadmaps
                         break;
                     case "all":
                     default:
-                        // No additional filter, show all
                         break;
                 }
+
+                query = request.SortBy switch
+                {
+                    "name" => query.OrderBy(r => r.RoadmapName),
+                    "namedesc" => query.OrderByDescending(r => r.RoadmapName),
+                    "updatedAt" => query.OrderByDescending(r => r.UpdatedAt),
+                    "updatedAtdesc" => query.OrderBy(r => r.UpdatedAt),
+                    "createdAtdesc" => query.OrderBy(r => r.CreatedAt),
+                    _ => query.OrderByDescending(r => r.CreatedAt) // Default to CreatedAt
+                };
 
                 // Get total count of roadmaps matching the query (before pagination)
                 var totalCount = await query.CountAsync(cancellationToken);

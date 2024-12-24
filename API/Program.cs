@@ -79,8 +79,8 @@ using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 
 
-    //var context = services.GetRequiredService<DataContext>();
-    //context.Database.Migrate();
+//var context = services.GetRequiredService<DataContext>();
+//context.Database.Migrate();
 
 
 app.Run();

@@ -18,7 +18,10 @@ namespace API.Controllers
             [FromQuery] string searchTerm, 
             [FromQuery] string filter = "all", 
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 6)
+            [FromQuery] int pageSize = 6,
+            [FromQuery] string sortBy = "createdAt"
+            )
+
         {
 
             try
@@ -37,7 +40,8 @@ namespace API.Controllers
                     SearchTerm = searchTerm,
                     Filter = filter,
                     Page = page,
-                    PageSize = pageSize
+                    PageSize = pageSize,
+                    SortBy = sortBy
                 });
 
 
