@@ -32,6 +32,14 @@ namespace Application.Roadmaps
                     .Include(r => r.Nodes)
                     .FirstOrDefaultAsync(r => r.Id == request.Roadmap.Id, cancellationToken);
 
+                var conflictingRoadmap = await _context.Roadmap
+                    .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.Id != oldRoadmap.Id, cancellationToken);
+
+                if (conflictingRoadmap != null)
+                {
+                    throw new Exception($"A roadmap with the name '{request.Roadmap.Name}' already exists.");
+                }
+
                 // Create the Roadmap
                 var roadmap = new Roadmap
                 {

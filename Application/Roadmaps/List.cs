@@ -57,8 +57,10 @@ namespace Application.Roadmaps
                 // Apply search term filter if provided
                 if (!string.IsNullOrEmpty(request.SearchTerm))
                 {
+                    var trimmedSearchTerm = request.SearchTerm.Trim();
+
                     query = query.Where(r =>
-                        EF.Functions.Like(r.RoadmapName.ToLower(), $"%{request.SearchTerm.ToLower()}%"));
+                        EF.Functions.Like(r.RoadmapName.ToLower(), $"%{trimmedSearchTerm.ToLower()}%"));
                 }
 
                 var draftCount = await query.CountAsync(r => !r.IsPublished, cancellationToken);

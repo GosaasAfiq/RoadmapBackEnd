@@ -78,8 +78,15 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Create.Command command)
         {
-            await Mediator.Send(command);
-            return Ok();
+            try
+            {
+                await Mediator.Send(command);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("updatenode")]
@@ -107,8 +114,16 @@ namespace API.Controllers
         [HttpPost("updateroadmap")]
         public async Task<IActionResult> UpdateRoadmap([FromBody] UpdateRoadmap.Command command)
         {
-            await Mediator.Send(command);
-            return Ok();
+            try
+            {
+                await Mediator.Send(command);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            
         }
 
     }

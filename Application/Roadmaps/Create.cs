@@ -1,6 +1,7 @@
 ﻿using Application.Dto;
 using Domain;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Roadmaps
@@ -26,6 +27,15 @@ namespace Application.Roadmaps
 
                 var currentTime = DateTime.UtcNow;
                 var timestamp = currentTime;
+
+                var existingRoadmap = await _context.Roadmap
+                    .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.UserId == request.Roadmap.UserId, cancellationToken);
+
+                if (existingRoadmap != null)
+                {
+                    throw new Exception($"A roadmap with the name '{request.Roadmap.Name}' already exists."); 
+                }
+
 
                 // Create the Roadmap
                 var roadmap = new Roadmap
