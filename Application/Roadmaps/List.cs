@@ -2,7 +2,6 @@ using Application.Dto;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Persistence;
 
 namespace Application.Roadmaps
@@ -68,6 +67,7 @@ namespace Application.Roadmaps
                 var inProgressCount = await query.CountAsync(r => r.IsPublished && !r.IsCompleted && r.Nodes.Any(n => n.IsCompleted), cancellationToken);
                 var completedCount = await query.CountAsync(r => r.IsCompleted, cancellationToken);
                 var nearDueCount = await query.CountAsync(r =>
+                    !r.IsCompleted &&
                     r.Nodes.Where(n => n.ParentId == null)
                            .OrderByDescending(n => n.EndDate)
                            .Select(n => n.EndDate)
@@ -78,6 +78,7 @@ namespace Application.Roadmaps
                            .FirstOrDefault() <= currentDate.AddDays(5),
                     cancellationToken);
                 var overdueCount = await query.CountAsync(r =>
+                    !r.IsCompleted &&
                     r.Nodes.Where(n => n.ParentId == null)
                            .OrderByDescending(n => n.EndDate)
                            .Select(n => n.EndDate)
@@ -102,6 +103,7 @@ namespace Application.Roadmaps
                         break;
                     case "near-due":
                         query = query.Where(r =>
+                            !r.IsCompleted &&
                             r.Nodes.Where(n => n.ParentId == null)
                                    .OrderByDescending(n => n.EndDate)
                                    .Select(n => n.EndDate)
@@ -113,6 +115,7 @@ namespace Application.Roadmaps
                         break;
                     case "overdue":
                         query = query.Where(r =>
+                            !r.IsCompleted &&
                             r.Nodes.Where(n => n.ParentId == null)
                                    .OrderByDescending(n => n.EndDate)
                                    .Select(n => n.EndDate)

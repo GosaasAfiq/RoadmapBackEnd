@@ -1,7 +1,6 @@
 using Application.AuditTrails;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
 
 namespace API.Controllers
 {
@@ -36,7 +35,7 @@ namespace API.Controllers
 
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch 
             {
                 return StatusCode(500, "An error occurred while processing your request.");
             }

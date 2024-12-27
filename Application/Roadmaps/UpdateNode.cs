@@ -1,7 +1,6 @@
 ﻿using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Persistence;
 
 namespace Application.Roadmaps
@@ -42,12 +41,12 @@ namespace Application.Roadmaps
 
                 foreach (var node in existingRoadmap.Nodes)
                 {
-                    await UpdateSectionNode(node);
+                    UpdateSectionNode(node);
                 }
 
                 foreach (var node in existingRoadmap.Nodes)
                 {
-                    await UpdateMilestoneNode(node);
+                    UpdateMilestoneNode(node);
                 }
 
                 // Now check if all milestones are complete to mark the roadmap as complete
@@ -56,26 +55,26 @@ namespace Application.Roadmaps
                 // Save the changes
                 await _context.SaveChangesAsync(cancellationToken);
             }
-            private async Task UpdateSectionNode(Node node)
+            private void UpdateSectionNode(Node node)
             {
 
                 if (node.ParentId != null)
                 {
-                    await ProcessSectionNode(node);
+                    ProcessSectionNode(node);
                 }
             }
 
-            private async Task UpdateMilestoneNode(Node node)
+            private void UpdateMilestoneNode(Node node)
             {
 
                 if (node.ParentId == null)
                 {
-                    await ProcessMilestoneNode(node);
+                   ProcessMilestoneNode(node);
                 }
 
             }
 
-            private async Task ProcessSectionNode(Node node)
+            private void ProcessSectionNode(Node node)
             {
                 // Step 2: Check if the section node has children
                 if (node.Children != null && node.Children.Any())
@@ -103,7 +102,7 @@ namespace Application.Roadmaps
                 }                
             }
 
-            private async Task ProcessMilestoneNode(Node node)
+            private void ProcessMilestoneNode(Node node)
             {
                 // Step 5: Now check if the milestone node has children
                 if (node.Children != null && node.Children.Any())

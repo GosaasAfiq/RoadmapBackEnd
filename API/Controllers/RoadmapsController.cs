@@ -26,7 +26,7 @@ namespace API.Controllers
 
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Assuming the claim is stored as NameIdentifier
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); 
 
                 // Convert the userId to Guid
                 if (!Guid.TryParse(userIdString, out Guid userId))
@@ -47,7 +47,7 @@ namespace API.Controllers
 
                 return Ok(roadmaps);
             }
-            catch (Exception ex)
+            catch 
             {
                 return StatusCode(500, "An error occurred while processing your request.");
             }
@@ -69,7 +69,7 @@ namespace API.Controllers
 
                 return Ok(roadmap);
             }
-            catch (Exception ex)
+            catch 
             {
                 return StatusCode(500, "An error occurred while processing your request.");
             }
@@ -81,7 +81,7 @@ namespace API.Controllers
             try
             {
                 await Mediator.Send(command);
-                return Ok();
+                return Ok(new { message = "Roadmap created successfully" });
             }
             catch (Exception ex)
             {
@@ -105,7 +105,7 @@ namespace API.Controllers
                 await Mediator.Send(command);
                 return Ok();
             }
-            catch (Exception ex)
+            catch 
             {
                 return StatusCode(500, "An error occurred while processing your request.");
             }
@@ -117,7 +117,7 @@ namespace API.Controllers
             try
             {
                 await Mediator.Send(command);
-                return Ok();
+                return Ok(new { message = "Roadmap updated successfully" });
             }
             catch (Exception ex)
             {

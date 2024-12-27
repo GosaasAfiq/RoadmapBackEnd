@@ -20,7 +20,7 @@ namespace API.Controllers
                 var userList = await Mediator.Send(new UserList.Query());
                 return Ok(userList);
             }
-            catch (Exception ex)
+            catch 
             {
                 return StatusCode(500, "An error occurred while processing your request.");
             }

@@ -33,7 +33,7 @@ namespace Application.Roadmaps
                     .FirstOrDefaultAsync(r => r.Id == request.Roadmap.Id, cancellationToken);
 
                 var conflictingRoadmap = await _context.Roadmap
-                    .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.Id != oldRoadmap.Id, cancellationToken);
+                    .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.Id != oldRoadmap.Id && !r.IsDeleted, cancellationToken);
 
                 if (conflictingRoadmap != null)
                 {
@@ -82,7 +82,7 @@ namespace Application.Roadmaps
                         EndDate = milestoneDto.EndDate?.ToUniversalTime(),
                         ParentId = null,
                         RoadmapId = roadmap.Id,
-                        IsCompleted = false,
+                        IsCompleted = oldMilestone?.IsCompleted ?? false,
                         CreateAt = oldMilestone?.CreateAt ?? timestamp,
                         UpdatedAt = timestamp,
                         Children = new List<Node>()
@@ -113,7 +113,7 @@ namespace Application.Roadmaps
                             EndDate = sectionDto.EndDate?.ToUniversalTime(),
                             ParentId = milestone.Id,
                             RoadmapId = roadmap.Id,
-                            IsCompleted = false,
+                            IsCompleted = oldSection?.IsCompleted ?? false,
                             CreateAt = oldSection?.CreateAt ?? timestamp,
                             UpdatedAt = timestamp,
                             Children = new List<Node>()
@@ -146,7 +146,7 @@ namespace Application.Roadmaps
                                 RoadmapId = roadmap.Id,
                                 CreateAt = oldSubSection?.CreateAt ?? timestamp,
                                 UpdatedAt = timestamp,
-                                IsCompleted = false,
+                                IsCompleted = oldSubSection?.IsCompleted ?? false,
                             };
 
                             timestamp = timestamp.AddMilliseconds(10);

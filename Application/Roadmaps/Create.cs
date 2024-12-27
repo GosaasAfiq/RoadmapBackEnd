@@ -29,7 +29,7 @@ namespace Application.Roadmaps
                 var timestamp = currentTime;
 
                 var existingRoadmap = await _context.Roadmap
-                    .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.UserId == request.Roadmap.UserId, cancellationToken);
+                    .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.UserId == request.Roadmap.UserId && !r.IsDeleted, cancellationToken);
 
                 if (existingRoadmap != null)
                 {
