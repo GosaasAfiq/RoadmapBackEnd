@@ -11,10 +11,10 @@ namespace Application.Roadmaps
         public class Query : IRequest<Result>
         {
             public Guid UserId { get; set; }
-            public string SearchTerm { get; set; } // Optional search term
-            public string Filter { get; set; } = "all"; // Default filter is 'all'
-            public int Page { get; set; } = 1; // Default to page 1
-            public int PageSize { get; set; } = 6; // Default to 6 items per page
+            public string SearchTerm { get; set; } 
+            public string Filter { get; set; } = "all"; 
+            public int Page { get; set; } = 1; 
+            public int PageSize { get; set; } = 6; 
             public string SortBy { get; set; }
         }
 
@@ -126,24 +126,7 @@ namespace Application.Roadmaps
                         break;
                 }
 
-                query = request.SortBy switch
-                {
-                    "name" => query.OrderBy(r => r.RoadmapName),
-                    "namedesc" => query.OrderByDescending(r => r.RoadmapName),
-                    "updatedAt" => query.OrderByDescending(r => r.UpdatedAt),
-                    "updatedAtdesc" => query.OrderBy(r => r.UpdatedAt),
-                    "createdAtdesc" => query.OrderBy(r => r.CreatedAt),
-                    _ => query.OrderByDescending(r => r.CreatedAt) // Default to CreatedAt
-                };
-
-                // Get total count of roadmaps matching the query (before pagination)
-                var totalCount = await query.CountAsync(cancellationToken);
-
-                // Apply pagination using Skip and Take
-                var roadmaps = await query
-                    .Skip((request.Page - 1) * request.PageSize)  // Skip the appropriate number of items
-                    .Take(request.PageSize)  // Take the number of items specified in PageSize
-                    .ToListAsync(cancellationToken);
+                var roadmaps = await query.ToListAsync(cancellationToken);
 
                 // Map the fetched roadmaps to RoadmapDto
                 var roadmapDtos = roadmaps.Select(r => new RoadmapDto
@@ -176,11 +159,49 @@ namespace Application.Roadmaps
                         .ToList()
                 }).ToList();
 
+                roadmapDtos = request.SortBy switch
+                {
+                    "updatedAtdesc" => roadmapDtos.OrderBy(r => r.UpdatedAt).ToList(),
+                    "createdAt" => roadmapDtos.OrderByDescending(r => r.CreatedAt).ToList(),
+                    "createdAtdesc" => roadmapDtos.OrderBy(r => r.CreatedAt).ToList(),
+                    "progress" => roadmapDtos.OrderBy(r => r.CompletionRate).ToList(),
+                    "progressdesc" => roadmapDtos.OrderByDescending(r => r.CompletionRate).ToList(),
+                    "name" => roadmapDtos.OrderBy(r => r.RoadmapName).ToList(),
+                    "namedesc" => roadmapDtos.OrderByDescending(r => r.RoadmapName).ToList(),
+                    "startdate" => roadmapDtos.OrderBy(r => r.Nodes
+                        .Where(n => n.ParentId == null)
+                        .OrderBy(n => n.StartDate)
+                        .Select(n => n.StartDate)
+                        .FirstOrDefault()).ToList(),
+                    "startdatedesc" => roadmapDtos.OrderByDescending(r => r.Nodes
+                        .Where(n => n.ParentId == null)
+                        .OrderBy(n => n.StartDate)
+                        .Select(n => n.StartDate)
+                        .FirstOrDefault()).ToList(),
+                    "enddate" => roadmapDtos.OrderBy(r => r.Nodes
+                        .Where(n => n.ParentId == null)
+                        .OrderByDescending(n => n.EndDate)
+                        .Select(n => n.EndDate)
+                        .FirstOrDefault()).ToList(),
+                    "enddatedesc" => roadmapDtos.OrderByDescending(r => r.Nodes
+                        .Where(n => n.ParentId == null)
+                        .OrderByDescending(n => n.EndDate)
+                        .Select(n => n.EndDate)
+                        .FirstOrDefault()).ToList(),
+                    _ => roadmapDtos.OrderByDescending(r => r.UpdatedAt).ToList()
+                };
+
+                var paginatedItems = roadmapDtos
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
+
+
                 // Return the result with total count and paginated items
                 return new Result
                 {
-                    TotalCount = totalCount,
-                    Items = roadmapDtos,
+                    TotalCount = roadmapDtos.Count,
+                    Items = paginatedItems,
                     DraftCount = draftCount,
                     NotStartedCount = notStartedCount,
                     InProgressCount = inProgressCount,

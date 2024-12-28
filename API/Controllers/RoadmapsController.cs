@@ -19,7 +19,7 @@ namespace API.Controllers
             [FromQuery] string filter = "all", 
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 6,
-            [FromQuery] string sortBy = "createdAt"
+            [FromQuery] string sortBy = "updatedAt"
             )
 
         {
