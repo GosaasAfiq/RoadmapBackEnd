@@ -1,5 +1,6 @@
 ﻿using Application.Dto;
 using Domain;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -11,6 +12,33 @@ namespace Application.Roadmaps
         public class Command : IRequest
         {
             public CreateRoadmapDto Roadmap { get; set; }
+        }
+
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.Roadmap).NotNull().WithMessage("Roadmap cannot be null.")
+                    .SetValidator(new UpdateRoadmapDtoValidator());
+            }
+        }
+
+        public class UpdateRoadmapDtoValidator : AbstractValidator<CreateRoadmapDto>
+        {
+            public UpdateRoadmapDtoValidator()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("Roadmap name cannot be empty.");
+
+                RuleFor(x => x.UserId)
+                    .NotEmpty().WithMessage("UserId cannot be empty.");
+
+                RuleFor(x => x.CreatedAt)
+                    .NotEmpty().WithMessage("CreatedAt cannot be empty.");
+
+                RuleFor(x => x.Id)
+                    .NotEmpty().WithMessage("Id cannot be empty.");
+            }
         }
 
         public class Handler : IRequestHandler<Command>
@@ -31,6 +59,11 @@ namespace Application.Roadmaps
                 var oldRoadmap = await _context.Roadmap
                     .Include(r => r.Nodes)
                     .FirstOrDefaultAsync(r => r.Id == request.Roadmap.Id, cancellationToken);
+
+                if (oldRoadmap == null)
+                {
+                    throw new NotFoundException($"Roadmap with Id '{request.Roadmap.Id}' not found.");
+                }
 
                 var conflictingRoadmap = await _context.Roadmap
                     .FirstOrDefaultAsync(r => r.RoadmapName == request.Roadmap.Name && r.Id != oldRoadmap.Id && !r.IsDeleted, cancellationToken);

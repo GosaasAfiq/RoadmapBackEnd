@@ -12,9 +12,9 @@ namespace Application.Roadmaps
         {
             public Guid UserId { get; set; }
             public string SearchTerm { get; set; } 
-            public string Filter { get; set; } = "all"; 
-            public int Page { get; set; } = 1; 
-            public int PageSize { get; set; } = 6; 
+            public string Filter { get; set; }
+            public int Page { get; set; } 
+            public int PageSize { get; set; } 
             public string SortBy { get; set; }
         }
 
@@ -138,6 +138,8 @@ namespace Application.Roadmaps
                     IsCompleted = r.IsCompleted,
                     CreatedAt = r.CreatedAt.ToString("dd-MM-yyyy"),
                     UpdatedAt = r.UpdatedAt.ToString("dd-MM-yyyy"),
+                    UpdatedAtRaw = r.UpdatedAt,
+                    CreatedAtRaw = r.CreatedAt,
                     CompletionRate = CalculateCompletionRate(r),
                     StartDate = r.Nodes
                         .Where(n => n.ParentId == null) // Only consider milestones
@@ -161,9 +163,9 @@ namespace Application.Roadmaps
 
                 roadmapDtos = request.SortBy switch
                 {
-                    "updatedAtdesc" => roadmapDtos.OrderBy(r => r.UpdatedAt).ToList(),
-                    "createdAt" => roadmapDtos.OrderByDescending(r => r.CreatedAt).ToList(),
-                    "createdAtdesc" => roadmapDtos.OrderBy(r => r.CreatedAt).ToList(),
+                    "updatedAtdesc" => roadmapDtos.OrderBy(r => r.UpdatedAtRaw).ToList(),
+                    "createdAt" => roadmapDtos.OrderByDescending(r => r.CreatedAtRaw).ToList(),
+                    "createdAtdesc" => roadmapDtos.OrderBy(r => r.CreatedAtRaw).ToList(),
                     "progress" => roadmapDtos.OrderBy(r => r.CompletionRate).ToList(),
                     "progressdesc" => roadmapDtos.OrderByDescending(r => r.CompletionRate).ToList(),
                     "name" => roadmapDtos.OrderBy(r => r.RoadmapName).ToList(),
@@ -188,7 +190,7 @@ namespace Application.Roadmaps
                         .OrderByDescending(n => n.EndDate)
                         .Select(n => n.EndDate)
                         .FirstOrDefault()).ToList(),
-                    _ => roadmapDtos.OrderByDescending(r => r.UpdatedAt).ToList()
+                    _ => roadmapDtos.OrderByDescending(r => r.UpdatedAtRaw).ToList()
                 };
 
                 var paginatedItems = roadmapDtos

@@ -1,4 +1,6 @@
 using Application.Roadmaps;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -23,6 +25,15 @@ namespace API.Extensions
                 });
             });
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(List.Handler).Assembly));
+            services.AddFluentValidationAutoValidation();
+            services.AddValidatorsFromAssemblyContaining<Create>();
+
+            services.Configure<DefaultRoadmapSettings>(
+                config.GetSection("DefaultRoadmapSettings"));
+
+            services.Configure<DefaultAuditTrailSettings>(
+                config.GetSection("DefaultAuditTrailSettings"));
+
 
             return services;
         }

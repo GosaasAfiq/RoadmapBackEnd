@@ -34,7 +34,7 @@ namespace Application.Roadmaps
 
                 if (roadmap == null)
                 {
-                    return null; // Or handle differently if you want to return an error response
+                    return null;
                 }
 
                 var startDate = roadmap.Nodes

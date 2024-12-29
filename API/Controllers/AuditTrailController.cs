@@ -1,12 +1,15 @@
 using Application.AuditTrails;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace API.Controllers
 {
     public class AuditTrailController : BaseApiController<AuditTrailController>
     {
-        public AuditTrailController(ILogger<AuditTrailController> logger) : base(logger)
+        private readonly DefaultAuditTrailSettings _defaultSettings;
+
+        public AuditTrailController(ILogger<AuditTrailController> logger, IOptions<DefaultAuditTrailSettings> defaultSettings) : base(logger)
         {
         }
 
@@ -16,21 +19,24 @@ namespace API.Controllers
             [FromQuery] string userFilter,
             [FromQuery] DateTime? startDate,
             [FromQuery] DateTime? endDate,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 6
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize
             )
         {
 
             try
             {
+                int resolvedPage = page ?? _defaultSettings.Page;
+                int resolvedPageSize = pageSize ?? _defaultSettings.PageSize;
+
                 var result = await Mediator.Send(new AuditTrailList.Query
                 {
                     SearchTerm = searchTerm,
                     UserFilter = userFilter,
                     StartDate = startDate,
                     EndDate = endDate,
-                    Page = page,
-                    PageSize = pageSize
+                    Page = resolvedPage,
+                    PageSize = resolvedPageSize
                 });
 
                 return Ok(result);

@@ -1,5 +1,6 @@
 ﻿using Application.Dto;
 using Domain;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -12,6 +13,29 @@ namespace Application.Roadmaps
         {
             public CreateRoadmapDto Roadmap { get; set; }
         }
+
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.Roadmap).NotNull().WithMessage("Roadmap cannot be null.")
+                    .SetValidator(new CreateRoadmapDtoValidator());
+
+            }
+        }
+
+        public class CreateRoadmapDtoValidator : AbstractValidator<CreateRoadmapDto>
+        {
+            public CreateRoadmapDtoValidator()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("Roadmap name cannot be empty.");
+
+                RuleFor(x => x.UserId)
+                    .NotEmpty().WithMessage("UserId cannot be null or empty.");
+            }
+        }
+
 
         public class Handler : IRequestHandler<Command>
         {

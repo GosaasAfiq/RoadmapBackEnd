@@ -1,4 +1,5 @@
 ﻿using Domain;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -11,8 +12,23 @@ namespace Application.Roadmaps
         {
             public Roadmap Roadmap { get; set; }
         }
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.Roadmap)
+                    .NotNull().WithMessage("Roadmap cannot be null.");
 
-        public class Handler : IRequestHandler<Command>
+                RuleFor(x => x.Roadmap.Id)
+                    .NotEmpty().WithMessage("Roadmap Id is required.");
+
+                RuleFor(x => x.Roadmap.Nodes)
+                    .NotEmpty().WithMessage("The roadmap must contain at least one node.");
+
+            }
+        }
+
+            public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext _context;
             public Handler(DataContext context)

@@ -1,25 +1,26 @@
 using Application.Roadmaps;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Serilog;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
 namespace API.Controllers
 {
     public class RoadmapsController : BaseApiController<RoadmapsController>
     {
-        public RoadmapsController(ILogger<RoadmapsController> logger) : base(logger)
+        private readonly DefaultRoadmapSettings _defaultSettings;
+        public RoadmapsController(ILogger<RoadmapsController> logger, IOptions<DefaultRoadmapSettings> defaultSettings) : base(logger)
         {
+            _defaultSettings = defaultSettings.Value;
         }
 
         [HttpGet] // api/roadmaps
         public async Task<ActionResult<List<Roadmap>>> GetRoadmaps(
             [FromQuery] string searchTerm, 
-            [FromQuery] string filter = "all", 
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 6,
-            [FromQuery] string sortBy = "updatedAt"
+            [FromQuery] string filter,
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize,
+            [FromQuery] string sortBy
             )
 
         {
@@ -34,13 +35,19 @@ namespace API.Controllers
                     return Unauthorized("Invalid UserId claim.");
                 }
 
+                filter = filter ?? _defaultSettings.Filter;
+                int resolvedPage = page ?? _defaultSettings.Page; // Convert to non-nullable
+                int resolvedPageSize = pageSize ?? _defaultSettings.PageSize; // Convert to non-nullable
+                sortBy = sortBy ?? _defaultSettings.SortBy;
+
+
                 var roadmaps = await Mediator.Send(new List.Query
                 {
                     UserId = userId,
                     SearchTerm = searchTerm,
                     Filter = filter,
-                    Page = page,
-                    PageSize = pageSize,
+                    Page = resolvedPage, // Use non-nullable variables
+                    PageSize = resolvedPageSize, // Use non-nullable variables
                     SortBy = sortBy
                 });
 
