@@ -24,27 +24,20 @@ namespace API.Controllers
             )
         {
 
-            try
-            {
-                int resolvedPage = page ?? _defaultSettings.Page;
-                int resolvedPageSize = pageSize ?? _defaultSettings.PageSize;
+            int resolvedPage = page ?? _defaultSettings.Page;
+            int resolvedPageSize = pageSize ?? _defaultSettings.PageSize;
 
-                var result = await Mediator.Send(new AuditTrailList.Query
-                {
-                    SearchTerm = searchTerm,
-                    UserFilter = userFilter,
-                    StartDate = startDate,
-                    EndDate = endDate,
-                    Page = resolvedPage,
-                    PageSize = resolvedPageSize
-                });
-
-                return Ok(result);
-            }
-            catch 
+            var result = await Mediator.Send(new AuditTrailList.Query
             {
-                return StatusCode(500, "An error occurred while processing your request.");
-            }
+                SearchTerm = searchTerm,
+                UserFilter = userFilter,
+                StartDate = startDate,
+                EndDate = endDate,
+                Page = resolvedPage,
+                PageSize = resolvedPageSize
+            });
+
+            return Ok(result);
         }
 
         [HttpPost] // api/audittrail

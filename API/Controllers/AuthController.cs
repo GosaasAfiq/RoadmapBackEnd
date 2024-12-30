@@ -18,15 +18,8 @@ namespace API.Controllers
         [HttpPost("google-response")]
         public async Task<IActionResult> GoogleResponse([FromBody] CredentialRequest request)
         {
-            try
-            {
-                var response = await _mediator.Send(new Login.Command { Credential = request.Credential });
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = "Invalid token", details = ex.Message });
-            }
+            var response = await _mediator.Send(new Login.Command { Credential = request.Credential });
+            return Ok(response);
         }
     }
 }

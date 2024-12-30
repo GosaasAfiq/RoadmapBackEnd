@@ -70,7 +70,7 @@ namespace Application.Roadmaps
 
                 if (conflictingRoadmap != null)
                 {
-                    throw new Exception($"A roadmap with the name '{request.Roadmap.Name}' already exists.");
+                    throw new InvalidOperationException($"A roadmap with the name '{request.Roadmap.Name}' already exists.");
                 }
 
                 // Create the Roadmap

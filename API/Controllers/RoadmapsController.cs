@@ -24,76 +24,54 @@ namespace API.Controllers
             )
 
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); 
 
-            try
+            if (!Guid.TryParse(userIdString, out Guid userId))
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); 
-
-                // Convert the userId to Guid
-                if (!Guid.TryParse(userIdString, out Guid userId))
-                {
-                    return Unauthorized("Invalid UserId claim.");
-                }
-
-                filter = filter ?? _defaultSettings.Filter;
-                int resolvedPage = page ?? _defaultSettings.Page; // Convert to non-nullable
-                int resolvedPageSize = pageSize ?? _defaultSettings.PageSize; // Convert to non-nullable
-                sortBy = sortBy ?? _defaultSettings.SortBy;
-
-
-                var roadmaps = await Mediator.Send(new List.Query
-                {
-                    UserId = userId,
-                    SearchTerm = searchTerm,
-                    Filter = filter,
-                    Page = resolvedPage, // Use non-nullable variables
-                    PageSize = resolvedPageSize, // Use non-nullable variables
-                    SortBy = sortBy
-                });
-
-
-                return Ok(roadmaps);
+                return Unauthorized("Invalid UserId claim.");
             }
-            catch 
+
+            filter = filter ?? _defaultSettings.Filter;
+            int resolvedPage = page ?? _defaultSettings.Page; 
+            int resolvedPageSize = pageSize ?? _defaultSettings.PageSize; 
+            sortBy = sortBy ?? _defaultSettings.SortBy;
+
+
+            var roadmaps = await Mediator.Send(new List.Query
             {
-                return StatusCode(500, "An error occurred while processing your request.");
-            }
+                UserId = userId,
+                SearchTerm = searchTerm,
+                Filter = filter,
+                Page = resolvedPage, 
+                PageSize = resolvedPageSize, 
+                SortBy = sortBy
+            });
+
+
+            return Ok(roadmaps);
         }
 
         [HttpGet("{id}")] // api/roadmaps/{id}
         public async Task<ActionResult<Roadmap>> GetRoadmap(Guid id)
         {
 
-            try
-            {
-                // Only pass the roadmap ID (not userId) to the Details.Query
-                var roadmap = await Mediator.Send(new Details.Query { Id = id });
+            var roadmap = await Mediator.Send(new Details.Query { Id = id });
 
-                if (roadmap == null)
-                {
-                    return NotFound($"Roadmap with ID {id} not found.");
-                }
-
-                return Ok(roadmap);
-            }
-            catch 
+            if (roadmap == null)
             {
-                return StatusCode(500, "An error occurred while processing your request.");
+                return NotFound($"Roadmap with ID {id} not found.");
             }
+
+            return Ok(roadmap);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Create.Command command)
         {
-            try
-            {
-                await Mediator.Send(command);
-                return Ok(new { message = "Roadmap created successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+
+            await Mediator.Send(command);
+            return Ok(new { message = "Roadmap created successfully" });
+
         }
 
         [HttpPut("updatenode")]
@@ -107,30 +85,15 @@ namespace API.Controllers
         [HttpPut("deleteroadmap")]
         public async Task<IActionResult> DeleteRoadmap([FromBody] DeleteRoadmap.Command command)
         {
-            try
-            {
-                await Mediator.Send(command);
-                return Ok();
-            }
-            catch 
-            {
-                return StatusCode(500, "An error occurred while processing your request.");
-            }
+            await Mediator.Send(command);
+            return Ok();
         }
 
         [HttpPost("updateroadmap")]
         public async Task<IActionResult> UpdateRoadmap([FromBody] UpdateRoadmap.Command command)
         {
-            try
-            {
-                await Mediator.Send(command);
-                return Ok(new { message = "Roadmap updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            
+            await Mediator.Send(command);
+            return Ok(new { message = "Roadmap updated successfully" });
         }
 
     }

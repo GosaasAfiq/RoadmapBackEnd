@@ -58,6 +58,8 @@ app.Use(async (context, next) =>
     await next.Invoke();
 });
 
+app.UseMiddleware<API.Middleware.GlobalErrorHandlerMiddleware>();
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {

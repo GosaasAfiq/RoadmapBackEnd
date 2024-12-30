@@ -23,6 +23,7 @@ namespace Application.Roadmaps
             public int TotalCount { get; set; } // Total count of roadmaps (before pagination)
             public List<RoadmapDto> Items { get; set; } // Paginated roadmaps
             public int DraftCount { get; set; }
+            public int PublishCount { get; set; }
             public int NotStartedCount { get; set; }
             public int InProgressCount { get; set; }
             public int CompletedCount { get; set; }
@@ -63,6 +64,7 @@ namespace Application.Roadmaps
                 }
 
                 var draftCount = await query.CountAsync(r => !r.IsPublished, cancellationToken);
+                var publishCount = await query.CountAsync(r => r.IsPublished, cancellationToken);
                 var notStartedCount = await query.CountAsync(r => r.IsPublished && !r.IsCompleted && !r.Nodes.Any(n => n.IsCompleted), cancellationToken);
                 var inProgressCount = await query.CountAsync(r => r.IsPublished && !r.IsCompleted && r.Nodes.Any(n => n.IsCompleted), cancellationToken);
                 var completedCount = await query.CountAsync(r => r.IsCompleted, cancellationToken);
@@ -91,6 +93,9 @@ namespace Application.Roadmaps
                 {
                     case "draft":
                         query = query.Where(r => !r.IsPublished);
+                        break;
+                    case "publish":
+                        query = query.Where(r => r.IsPublished);
                         break;
                     case "not-started":
                         query = query.Where(r => r.IsPublished && !r.IsCompleted && !r.Nodes.Any(n => n.IsCompleted));
@@ -205,6 +210,7 @@ namespace Application.Roadmaps
                     TotalCount = roadmapDtos.Count,
                     Items = paginatedItems,
                     DraftCount = draftCount,
+                    PublishCount = publishCount,
                     NotStartedCount = notStartedCount,
                     InProgressCount = inProgressCount,
                     CompletedCount = completedCount,

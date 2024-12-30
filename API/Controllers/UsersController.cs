@@ -15,15 +15,8 @@ namespace API.Controllers
         [HttpGet] // api/audittrail
         public async Task<ActionResult<List<UserList>>> GetAuditTrails()
         {
-            try
-            {
-                var userList = await Mediator.Send(new UserList.Query());
-                return Ok(userList);
-            }
-            catch 
-            {
-                return StatusCode(500, "An error occurred while processing your request.");
-            }
+            var userList = await Mediator.Send(new UserList.Query());
+            return Ok(userList);
         }
     }
 }
