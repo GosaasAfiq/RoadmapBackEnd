@@ -29,12 +29,151 @@ namespace Application.Roadmaps
             public CreateRoadmapDtoValidator()
             {
                 RuleFor(x => x.Name)
-                    .NotEmpty().WithMessage("Roadmap name cannot be empty.");
+                    .NotEmpty().WithMessage("Roadmap name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Roadmap name cannot exceed 40 characters.");
 
                 RuleFor(x => x.UserId)
                     .NotEmpty().WithMessage("UserId cannot be null or empty.");
+
+                RuleFor(x => x.Milestones)
+                   .NotEmpty().WithMessage("At least one milestone is required.")
+                   .Must(HaveAtLeastOneSection).WithMessage("At least one section is required for the roadmap.")
+                   .When(x => x.IsPublished);
+
+                RuleForEach(x => x.Milestones)
+                    .SetValidator(new MilestoneDtoValidatorP())
+                    .When(x => x.IsPublished);
+
+                RuleForEach(x => x.Milestones)
+                    .SetValidator(new MilestoneDtoValidator())
+                    .When(x => !x.IsPublished);
+            }
+
+            private bool HaveAtLeastOneSection(List<MilestoneDto> milestones)
+            {
+                return milestones != null && milestones.Any(m => m.Sections != null && m.Sections.Any());
             }
         }
+
+        public class MilestoneDtoValidatorP : AbstractValidator<MilestoneDto>
+        {
+            public MilestoneDtoValidatorP()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("Milestone name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Milestone name cannot exceed 40 characters.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.StartDate)
+                    .NotEmpty().WithMessage("Start date cannot be empty.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.EndDate)
+                    .NotEmpty().WithMessage("End date cannot be empty.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.Description)
+                    .NotEmpty().WithMessage("Description cannot be empty.")
+                    .MaximumLength(400).WithMessage("Description cannot exceed 400 characters.")
+                    .When(x => x != null);
+
+                RuleForEach(x => x.Sections)
+                    .SetValidator(new SectionDtoValidatorP());
+            }
+        }
+
+        public class MilestoneDtoValidator : AbstractValidator<MilestoneDto>
+        {
+            public MilestoneDtoValidator()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("Milestone name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Milestone name cannot exceed 40 characters.")
+                    .When(x => x != null);
+
+                RuleForEach(x => x.Sections)
+                    .SetValidator(new SectionDtoValidator());
+            }
+        }
+
+
+        public class SectionDtoValidatorP : AbstractValidator<SectionDto>
+        {
+            public SectionDtoValidatorP()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("Section name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Section name cannot exceed 40 characters.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.StartDate)
+                    .NotEmpty().WithMessage("Start date cannot be empty.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.EndDate)
+                    .NotEmpty().WithMessage("End date cannot be empty.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.Description)
+                    .NotEmpty().WithMessage("Description cannot be empty.")
+                    .MaximumLength(400).WithMessage("Description cannot exceed 400 characters.")
+                    .When(x => x != null);
+
+                RuleForEach(x => x.SubSections)
+                    .SetValidator(new SubSectionDtoValidatorP());
+            }
+        }
+
+        public class SectionDtoValidator : AbstractValidator<SectionDto>
+        {
+            public SectionDtoValidator()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("Section name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Section name cannot exceed 40 characters.")
+                    .When(x => x != null);
+
+                RuleForEach(x => x.SubSections)
+                    .SetValidator(new SubSectionDtoValidator());
+            }
+        }
+
+
+        public class SubSectionDtoValidatorP : AbstractValidator<SubSectionDto>
+        {
+            public SubSectionDtoValidatorP()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("SubSection name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Subsection name cannot exceed 40 characters.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.StartDate)
+                    .NotEmpty().WithMessage("Start date cannot be empty.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.EndDate)
+                    .NotEmpty().WithMessage("End date cannot be empty.")
+                    .When(x => x != null);
+
+                RuleFor(x => x.Description)
+                    .NotEmpty().WithMessage("Description cannot be empty.")
+                    .MaximumLength(400).WithMessage("Description cannot exceed 400 characters.")
+                    .When(x => x != null);
+            }
+        }
+
+        public class SubSectionDtoValidator : AbstractValidator<SubSectionDto>
+        {
+            public SubSectionDtoValidator()
+            {
+                RuleFor(x => x.Name)
+                    .NotEmpty().WithMessage("SubSection name cannot be empty.")
+                    .MaximumLength(40).WithMessage("Subsection name cannot exceed 40 characters.")
+                    .When(x => x != null);
+            }
+        }
+
 
 
         public class Handler : IRequestHandler<Command>

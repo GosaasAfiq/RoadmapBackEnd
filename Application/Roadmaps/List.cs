@@ -1,5 +1,6 @@
 using Application.Dto;
 using Domain;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -29,6 +30,28 @@ namespace Application.Roadmaps
             public int CompletedCount { get; set; }
             public int NearDueCount { get; set; } // Count of near due roadmaps
             public int OverdueCount { get; set; }
+        }
+
+        public class ListQueryValidator : AbstractValidator<Query>
+        {
+            public ListQueryValidator()
+            {
+                RuleFor(q => q.Page)
+                    .GreaterThan(0).WithMessage("Page must be greater than 0.");
+
+                RuleFor(q => q.PageSize)
+                    .InclusiveBetween(1, 100).WithMessage("PageSize must be between 1 and 100.");
+
+                RuleFor(q => q.SortBy)
+                    .Must(sortBy => new[] { "updatedAt", "updatedAtdesc", "createdAt", "createdAtdesc", "progress", "progressdesc", "name", "namedesc", "startdate", "startdatedesc", "enddate", "enddatedesc" }
+                        .Contains(sortBy))
+                    .WithMessage("Invalid value for SortBy.");
+
+                RuleFor(q => q.Filter)
+                    .Must(filter => string.IsNullOrEmpty(filter) || new[] { "draft", "publish", "not-started", "in-progress", "completed", "near-due", "overdue", "all" }
+                        .Contains(filter.ToLower()))
+                    .WithMessage("Invalid value for Filter.");
+            }
         }
 
         public class Handler : IRequestHandler<Query, Result>

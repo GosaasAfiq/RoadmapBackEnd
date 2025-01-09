@@ -5,9 +5,10 @@ namespace API.Middleware
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalErrorHandlerMiddleware> _logger;
 
-        public GlobalErrorHandlerMiddleware(RequestDelegate next)
+        public GlobalErrorHandlerMiddleware(RequestDelegate next, ILogger<GlobalErrorHandlerMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task Invoke(HttpContext context)
@@ -18,6 +19,7 @@ namespace API.Middleware
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An unhandled exception occurred while processing the request. TraceId: {TraceId}", context.Items["TraceId"]);
                 await HandleExceptionAsync(context, ex);
             }
         }
